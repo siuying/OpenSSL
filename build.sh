@@ -141,7 +141,7 @@ cp -r /tmp/openssl-${OPENSSL_VERSION}-i386/include/openssl include-osx/
 build "arm64" "${TVOS_SDK}" "appletvos"
 build "x86_64" "${TVOS_SIMULATOR_SDK}" "appletvos"
 mkdir -p include-tvos
-cp -r /tmp/openssl-${OPENSSL_VERSION}-i386/include/openssl include-tvos/
+cp -r /tmp/openssl-${OPENSSL_VERSION}-i386/include/openssl include-appletvos/
 
 rm -rf "/tmp/openssl-${OPENSSL_VERSION}-*"
 rm -rf "/tmp/openssl-${OPENSSL_VERSION}-*.log"
