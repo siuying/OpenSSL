@@ -34,11 +34,11 @@ Pod::Spec.new do |s|
   
   s.tvos.platform          = :tvos, '9.0'
   s.tvos.deployment_target = '9.0'
-  s.tvos.source_files        = 'include-tvos/openssl/**/*.h'
-  s.tvos.public_header_files = 'include-tvos/openssl/**/*.h'
+  s.tvos.source_files        = 'include-appletvos/openssl/**/*.h'
+  s.tvos.public_header_files = 'include-appletvos/openssl/**/*.h'
   s.tvos.header_dir          = 'openssl'
-  s.tvos.preserve_paths      = 'lib-tvos/libcrypto.a', 'lib-tvos/libssl.a'
-  s.tvos.vendored_libraries  = 'lib-tvos/libcrypto.a', 'lib-tvos/libssl.a'
+  s.tvos.preserve_paths      = 'lib-appletvos/libcrypto.a', 'lib-appletvos/libssl.a'
+  s.tvos.vendored_libraries  = 'lib-appletvos/libcrypto.a', 'lib-appletvos/libssl.a'
 
   s.osx.platform          = :osx, '10.9'
   s.osx.deployment_target = '10.8'
