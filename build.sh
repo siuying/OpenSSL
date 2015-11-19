@@ -13,6 +13,8 @@ DEVELOPER=$(xcode-select --print-path)
 
 IOS_SDK_VERSION=$(xcrun --sdk iphoneos --show-sdk-version)
 IOS_DEPLOYMENT_VERSION="6.0"
+TVOS_SDK_VERSION=$(xcrun --sdk appletvos --show-sdk-version)
+TVOS_DEPLOYMENT_VERSION="9.0"
 OSX_SDK_VERSION=$(xcrun --sdk macosx --show-sdk-version)
 OSX_DEPLOYMENT_VERSION="10.8"
 
@@ -22,12 +24,18 @@ IPHONEOS_SDK=$(xcrun --sdk iphoneos --show-sdk-path)
 IPHONESIMULATOR_PLATFORM=$(xcrun --sdk iphonesimulator --show-sdk-platform-path)
 IPHONESIMULATOR_SDK=$(xcrun --sdk iphonesimulator --show-sdk-path)
 
+TVOS_PLATFORM=$(xcrun --sdk appletvos --show-sdk-platform-path)
+TVOS_SDK=$(xcrun --sdk appletvos --show-sdk-path)
+
+TVOS_SIMULATOR_PLATFORM=$(xcrun --sdk appletvsimulator --show-sdk-platform-path)
+TVOS_SIMULATOR_SDK=$(xcrun --sdk appletvsimulator --show-sdk-path)
+
 OSX_PLATFORM=$(xcrun --sdk macosx --show-sdk-platform-path)
 OSX_SDK=$(xcrun --sdk macosx --show-sdk-path)
 
 # Clean up whatever was left from our previous build
 
-rm -rf include-ios include-osx lib-ios lib-osx
+rm -rf include-ios include-osx include-tvos lib-ios lib-osx lib-tvos
 rm -rf "/tmp/openssl-${OPENSSL_VERSION}-*"
 rm -rf "/tmp/openssl-${OPENSSL_VERSION}-*.log"
 
@@ -73,6 +81,22 @@ build()
          perl -i -pe 's|static volatile sig_atomic_t intr_signal|static volatile int intr_signal|' crypto/ui/ui_openssl.c
          sed -ie "s!^CFLAG=!CFLAG=-isysroot ${CROSS_TOP}/SDKs/${CROSS_SDK} -arch $ARCH -miphoneos-version-min=${IOS_DEPLOYMENT_VERSION} !" "Makefile"
       fi
+   elif [ "$TYPE" == "appletvos" ]; then
+      # IOS
+      if [ "$ARCH" == "x86_64" ]; then
+         # Simulator
+         export CROSS_TOP="${IPHONESIMULATOR_PLATFORM}/Developer"
+         export CROSS_SDK="AppleTVSimulator${IOS_SDK_VERSION}.sdk"
+         ./Configure darwin64-x86_64-cc --openssldir="/tmp/openssl-${OPENSSL_VERSION}-${ARCH}" &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.log"
+         sed -ie "s!^CFLAG=!CFLAG=-isysroot ${CROSS_TOP}/SDKs/${CROSS_SDK} -arch $ARCH -mtvos-simulator-version-min=${TVOS_DEPLOYMENT_VERSION} !" "Makefile"
+      else
+         # iOS
+         export CROSS_TOP="${TVOS_PLATFORM}/Developer"
+         export CROSS_SDK="AppleTVOS${TVOS_SDK_VERSION}.sdk"
+         ./Configure iphoneos-cross -no-asm --openssldir="/tmp/openssl-${OPENSSL_VERSION}-${ARCH}" &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.log"
+         perl -i -pe 's|static volatile sig_atomic_t intr_signal|static volatile int intr_signal|' crypto/ui/ui_openssl.c
+         sed -ie "s!^CFLAG=!CFLAG=-isysroot ${CROSS_TOP}/SDKs/${CROSS_SDK} -arch $ARCH -mtvos-version-min=${TVOS_DEPLOYMENT_VERSION} !" "Makefile"
+      fi
    else
       #OSX
       if [ "$ARCH" == "x86_64" ]; then
@@ -112,6 +136,11 @@ build "i386" "${OSX_SDK}" "osx"
 build "x86_64" "${OSX_SDK}" "osx"
 
 mkdir -p include-osx
+cp -r /tmp/openssl-${OPENSSL_VERSION}-i386/include/openssl include-osx/
+
+build "arm64" "${TVOS_SDK}" "appletvos"
+build "x86_64" "${TVOS_SIMULATOR_SDK}" "appletvos"
+mkdir -p include-tvos
 cp -r /tmp/openssl-${OPENSSL_VERSION}-i386/include/openssl include-osx/
 
 rm -rf "/tmp/openssl-${OPENSSL_VERSION}-*"
